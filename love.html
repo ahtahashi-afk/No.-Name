@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Surprise</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            background-color: #fce4ec;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            transition: background-color 1s ease;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+
+        .container { text-align: center; width: 100%; display: flex; justify-content: center; position: relative; }
+
+        .card {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 320px;
+            animation: fadeIn 0.8s ease-out;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        .rose-icon { font-size: 60px; margin-bottom: 10px; display: block; }
+        h1, h2 { color: #333; margin: 10px 0; font-size: 22px; }
+        p { color: #555; font-size: 14px; line-height: 1.6; }
+
+        .btn-main {
+            background-color: #ff4081; color: white; border: none;
+            padding: 12px 25px; border-radius: 25px; cursor: pointer;
+            font-weight: bold; width: 100%; font-size: 16px; transition: 0.3s; margin-top: 10px;
+        }
+
+        #noBtnMove, #noBtnChallenge {
+            background-color: #eee; color: #555; border: none;
+            padding: 10px; border-radius: 15px; cursor: pointer;
+            position: relative; transition: 0.2s; margin-top: 10px;
+        }
+
+        .interactive-area {
+            position: relative; width: 100vw; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        #yesBtn {
+            background-color: #a5c955; color: white; border: none;
+            padding: 12px 25px; border-radius: 50px; cursor: pointer;
+            font-weight: bold; position: absolute; transform: translate(-60px, 150px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        #noBtn {
+            background-color: #e74c3c; color: white; border: none;
+            padding: 12px 25px; border-radius: 50px; cursor: pointer;
+            font-weight: bold; position: absolute; transform: translate(60px, 150px);
+            z-index: 999;
+        }
+
+        .hidden { display: none !important; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .pulsing-rose { font-size: 80px; animation: pulse 1.5s infinite; }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .small-heart {
+            color: #ff4081;
+            font-size: 20px;
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            margin: 1px;
+            opacity: 0;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        #final-screen h1 {
+            color: #ff4081;
+            font-size: 2.5rem;
+            margin-top: 20px;
+            opacity: 0;
+            animation: fadeIn 2s ease-out 2.5s forwards, pulse 1.5s infinite 2.5s;
+        }
+
+        /* Video Container Styles */
+        #video-screen video {
+            max-width: 90%;
+            max-height: 70vh;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen" class="container">
+        <div>
+            <div class="pulsing-rose">&#127801;</div>
+            <div style="color:#d81b60; font-weight:bold; letter-spacing:2px;">GROWING YOUR ROSE...</div>
+        </div>
+    </div>
+
+    <div id="slide1" class="container hidden">
+        <div class="card">
+            <span class="rose-icon">&#127801;</span>
+            <h2>Wait!</h2>
+            <p>Who should I give this rose to?</p>
+            <input type="text" id="nameInput" style="width:100%; padding:12px; margin:20px 0; border:2px solid #f8bbd0; border-radius:12px; box-sizing:border-box; text-align:center;" placeholder="Enter name..." autocomplete="off">
+            <button class="btn-main" onclick="checkName()">Give Rose &#127801;</button>
+        </div>
+    </div>
+
+    <div id="slide-rose-quest" class="container hidden">
+        <div class="card">
+            <span class="rose-icon">&#127801;</span>
+            <h2 id="askName"></h2>
+            <p>Will you accept this rose?</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn-main" onclick="goToMessage()">Yes, I will! &#127801;&#10024;</button>
+                <button id="noBtnMove" onmouseover="moveNo()">No &#10060;</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="slide2" class="container hidden">
+        <div class="card">
+            <span class="rose-icon">&#127801;</span>
+            <h2 id="displayName"></h2>
+            <p style="font-weight: bold; color: #d81b60;">Thanks for your patience!</p>
+            <p>Let's proceed to the next page. <br> 
+            BTW, Ang cute mo ngayon kahit hindi kita nakikita.</p>
+            <button class="btn-main" onclick="startNewSurprise()">Next &#10145;</button>
+        </div>
+    </div>
+
+    <div id="screen1" class="container hidden">
+        <div class="card">
+            <h1>May ibibigay ako sayo...</h1>
+            <button class="btn-main" onclick="nextPage()">Ano 'yun? &#10024;</button>
+        </div>
+    </div>
+
+    <div id="screen2" class="hidden interactive-area">
+        <button id="yesBtn" onclick="celebrate()">YES &#128150;</button>
+        <button id="noBtn" onmouseover="moveButton()" onclick="moveButton()">NO</button>
+    </div>
+
+    <div id="result" class="container hidden">
+        <div class="card">
+            <h1>YAY! QUEEN! &#128081;&#10024;</h1>
+            <p>Valentine na tayo ah! WALA NG BAWIAN! &#128150;</p>
+            <button class="btn-main" onclick="showLoveScreen()" style="margin-top: 20px;">May isa pa... &#10024;</button>
+        </div>
+    </div>
+
+    <div id="final-screen" class="container hidden" style="flex-direction: column; background: #fff; height: 100vh;">
+        <div id="heart-grid"></div>
+        <h1>Happy Valentines QUEEN</h1>
+        <button class="btn-main" onclick="showVideoScreen()" style="width: auto; padding: 10px 30px; margin-top: 20px; animation: fadeIn 3s forwards;">Click for Final Surprise 🎁</button>
+    </div>
+
+    <div id="video-screen" class="container hidden" style="flex-direction: column; background: #fce4ec; height: 100vh;">
+        <h2 style="margin-bottom: 20px; color: #ff4081;">Paki-blow daw yung candle... 🕯️</h2>
+        <video id="surpriseVideo" controls>
+            <source src="1000023092.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <p style="margin-top: 20px;">I hope napa ngiti kita 
+           sa simple code na ginawa ko</p>
+    </div>
+
+    <script>
+        let savedName = "";
+
+        setTimeout(() => {
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('slide1').classList.remove('hidden');
+        }, 3000);
+
+        function checkName() {
+            const name = document.getElementById('nameInput').value.trim();
+            if (["baby", "dumbo", "jasmine"].includes(name.toLowerCase())) {
+                savedName = name.charAt(0).toUpperCase() + name.slice(1);
+                document.getElementById('slide1').classList.add('hidden');
+                document.getElementById('slide-rose-quest').classList.remove('hidden');
+                document.getElementById('askName').innerText = "For You, " + savedName;
+            } else {
+                alert("Sorry, this rose is not for you! \u274C");
+            }
+        }
+
+        function moveNo() {
+            const btn = document.getElementById('noBtnMove');
+            const x = Math.random() * (window.innerWidth - 200) - (window.innerWidth / 3);
+            const y = Math.random() * (window.innerHeight - 200) - (window.innerHeight / 3);
+            btn.style.transform = `translate(${x}px, ${y}px)`;
+        }
+
+        function goToMessage() {
+            document.getElementById('slide-rose-quest').classList.add('hidden');
+            document.getElementById('slide2').classList.remove('hidden');
+            document.getElementById('displayName').innerText = "Hey " + savedName + "!";
+        }
+
+        function startNewSurprise() {
+            document.getElementById('slide2').classList.add('hidden');
+            document.getElementById('screen1').classList.remove('hidden');
+            document.body.style.backgroundImage = "url('1000023088.jpg')";
+            document.body.style.backgroundColor = "transparent";
+        }
+
+        function nextPage() {
+            document.body.style.backgroundImage = "url('1000023089.jpg')";
+            document.getElementById('screen1').classList.add('hidden');
+            document.getElementById('screen2').classList.remove('hidden');
+        }
+
+        function moveButton() {
+            const noBtn = document.getElementById('noBtn');
+            noBtn.style.transform = "none";
+            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
+            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+        }
+
+        function celebrate() {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            document.getElementById('screen2').classList.add('hidden');
+            document.getElementById('result').classList.remove('hidden');
+            alert("Sabi na YES eh! \uD83D\uDC96 See you, My Queen!");
+        }
+
+        function showLoveScreen() {
+            document.body.style.backgroundImage = "none";
+            document.body.style.backgroundColor = "#fff";
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('final-screen').classList.remove('hidden');
+            const container = document.getElementById('heart-grid');
+            const pattern = [
+                "  11   11  ", " 1111 1111 ", "11111111111", "11111111111",
+                " 111111111 ", "  1111111  ", "   11111   ", "    111    ", "     1     "
+            ];
+            let html = '<div style="display:flex; flex-direction:column; align-items:center;">';
+            for (let r = 0; r < pattern.length; r++) {
+                html += '<div style="display: flex; justify-content: center;">';
+                for (let c = 0; c < pattern[r].length; c++) {
+                    if (pattern[r][c] === '1') {
+                        let delay = Math.random() * 2;
+                        html += `<span class="small-heart" style="animation-delay: ${delay}s;">&#10084;</span>`;
+                    } else {
+                        html += '<span style="width: 24px; height: 24px; display: inline-block; margin: 1px;"></span>';
+                    }
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // BAGONG FUNCTION PARA LUMABAS ANG VIDEO
+        function showVideoScreen() {
+            document.getElementById('final-screen').classList.add('hidden');
+            document.getElementById('video-screen').classList.remove('hidden');
+            const video = document.getElementById('surpriseVideo');
+            video.play(); // Auto-play pagka-click
+        }
+    </script>
+</body>
+</html>
